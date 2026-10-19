@@ -92,7 +92,7 @@ or `docker build -t dental . && docker run -p 8501:8501 dental`.
 
 ## The LLM brief and its guardrails
 
-The model never sees raw rows. It receives a fact sheet built from gold: ~70 facts, each
+The model never sees raw rows. It receives a fact sheet built from gold: one entry per metric, each
 with a stable id, a label and a display value. It must return a Pydantic
 `InsightsBrief` via OpenAI structured outputs, citing fact ids for every finding.
 
