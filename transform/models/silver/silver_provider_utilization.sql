@@ -12,7 +12,7 @@ with typed as (
 
     select
         trim(rendering_npi)                                  as rendering_npi,
-        regexp_replace(trim(provider_legal_name), ',\s*$', '') as provider_legal_name,
+        nullif(regexp_replace(trim(provider_legal_name), ',\s*$', ''), '') as provider_legal_name,
         cast(calendar_year as integer)                       as calendar_year,
         trim(delivery_system)                                as delivery_system,
         trim(provider_type)                                  as provider_type,

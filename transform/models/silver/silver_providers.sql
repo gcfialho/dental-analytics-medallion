@@ -1,5 +1,6 @@
 -- One row per rendering provider (NPI) with a canonical display name.
 -- The most frequent spelling wins; ties go to the longest (most complete) name.
+-- The source has a provider published with no name at all; it is shown by NPI.
 
 with name_counts as (
 
@@ -28,7 +29,8 @@ ranked_names as (
 
 select
     n.rendering_npi,
-    n.provider_legal_name as provider_name,
+    coalesce(n.provider_legal_name, 'Unnamed provider (NPI ' || n.rendering_npi || ')') as provider_name,
+    n.provider_legal_name is null                                                   as is_name_missing,
     n.name_variants,
     list_sort(list_distinct(list(u.delivery_system))) as delivery_systems,
     bool_or(u.is_safety_net_clinic)                   as works_at_safety_net_clinic
