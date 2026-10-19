@@ -47,7 +47,8 @@ def _brief(settings: Settings, args: argparse.Namespace) -> int:
         f"{len(verified.accepted)} findings accepted, {len(verified.rejected)} rejected -> {path}",
         file=sys.stderr,
     )
-    return 0
+    failed = bool(verified.rejected or verified.headline_issue)
+    return 1 if args.strict and failed else 0
 
 
 def _dashboard(settings: Settings, args: argparse.Namespace) -> int:
@@ -65,6 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     brief = sub.add_parser("brief", help="Generate a fact-checked insights brief.")
     brief.add_argument("--offline", action="store_true", help="Skip the LLM and use the deterministic brief.")
     brief.add_argument("--model", help="OpenAI model (default: $OPENAI_MODEL or gpt-5-mini).")
+    brief.add_argument("--strict", action="store_true", help="Exit 1 if any finding fails the fact-check.")
 
     dashboard = sub.add_parser("dashboard", help="Launch the Streamlit dashboard.")
     dashboard.add_argument("streamlit_args", nargs=argparse.REMAINDER)

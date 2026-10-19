@@ -21,6 +21,6 @@ jobs:
       - name: dbt build (models + data tests)
         run: uv run dental pipeline
       - name: Offline brief passes the fact-check
-        run: uv run dental brief --offline
+        run: uv run dental brief --offline --strict
       - name: Unit and integration tests
         run: uv run pytest

@@ -15,7 +15,11 @@ from dental_analytics.insights.facts import Fact
 from dental_analytics.insights.schema import Finding, InsightsBrief
 
 # Labels that contain digits but are not quantities.
-_NON_QUANTITIES = re.compile(r"\b0-20\b|\b21\+|\bages? \d+(?:-\d+)?\b|\bz\s*>\s*3\.5\b", re.IGNORECASE)
+_NON_QUANTITIES = re.compile(
+    r"\b0-20\b|\b21\+|\bages? \d+(?:-\d+)?\b|\bz\s*>\s*3\.5\b"
+    r"|\b\d+(?:st|nd|rd|th)\b",  # ordinals ("90th percentile") are labels, not quantities
+    re.IGNORECASE,
+)
 _NUMBER = re.compile(
     r"(?<![\w.])(?P<num>\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(?P<suffix>%|million|thousand|[MK]\b)?",
     re.IGNORECASE,

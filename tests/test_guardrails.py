@@ -29,6 +29,10 @@ def test_age_group_labels_are_not_quantities():
     assert extract_quantities("patients aged 0-20 and adults 21+") == []
 
 
+def test_ordinals_are_not_quantities():
+    assert extract_quantities("the 90th percentile vs the 10th, 1st and 2nd") == []
+
+
 def test_rounding_must_match_the_precision_written():
     assert unsupported_quantities("66.1%", FACTS) == []
     assert unsupported_quantities("66%", FACTS) == []
