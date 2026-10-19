@@ -1,0 +1,6 @@
+.venv
+warehouse
+transform/target
+transform/logs
+.git
+.env

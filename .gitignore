@@ -1,1 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets
 .env
+
+# Build artifacts
+warehouse/
+transform/target/
+transform/dbt_packages/
+transform/logs/
+logs/
+
+# OS
+.DS_Store
