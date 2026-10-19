@@ -104,7 +104,7 @@ These values were computed independently from the raw CSV and are pinned by
 - **ADV is the total.** "Annual dental visit" counts any dental service. Preventive,
   treatment and exam counts are subsets of it, which a dbt test checks on every row.
 - **Suppressed means unknown, not zero.** The source withholds patient counts from 1 to
-  10 (the smallest published count is 11). Rates use only rows where both sides are
+  10; no published count falls in that range, while true zeros are published as 0. Rates use only rows where both sides are
   published, and patient totals are reported as a range.
 - **Ratios of sums, not averages of ratios.** An 11-patient practice does not weigh as
   much as a 70,000-patient clinic.
