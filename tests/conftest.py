@@ -1,10 +1,11 @@
 import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
 from dental_analytics.config import Settings
-from dental_analytics.pipeline import run_dbt
 from dental_analytics.warehouse import connect
 
 
@@ -18,12 +19,14 @@ def settings(tmp_path_factory: pytest.TempPathFactory) -> Settings:
 
 @pytest.fixture(scope="session")
 def built_warehouse(settings: Settings) -> Path:
-    """Runs the real `dbt build` (models + all data tests) once per test session."""
-    cwd = Path.cwd()
-    try:
-        assert run_dbt(settings, "build"), "dbt build failed; see the dbt log above"
-    finally:
-        os.chdir(cwd)
+    """Runs the real `dbt build` (models + all data tests) once per test session.
+
+    It runs in a subprocess: dbt-duckdb keeps its read-write connection open for the
+    life of the process, and DuckDB refuses a second, read-only connection to the
+    same file from that process.
+    """
+    result = subprocess.run([sys.executable, "-m", "dental_analytics.cli", "pipeline"], env=os.environ.copy())
+    assert result.returncode == 0, "dbt build failed; see the dbt log above"
     return settings.duckdb_path
 
 
