@@ -39,10 +39,11 @@ deduplicated as (
         ) as name_variant_count,
         row_number() over (
             partition by
-                rendering_npi, delivery_system, provider_type, age_group_raw,
-                adv_users, adv_services, prev_users, prev_services,
-                txmt_users, txmt_services, exam_users, exam_services,
-                adv_users_annotation, adv_services_annotation
+                rendering_npi, delivery_system, provider_type, age_group_raw
+                {%- for metric in ['adv', 'prev', 'txmt', 'exam'] %},
+                {{ metric }}_users, {{ metric }}_services,
+                {{ metric }}_users_annotation, {{ metric }}_services_annotation
+                {%- endfor %}
             order by length(provider_legal_name) desc, _source_row
         ) as metric_copy_rank
     from typed

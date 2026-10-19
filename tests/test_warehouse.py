@@ -23,7 +23,7 @@ def test_bronze_keeps_every_source_row(con, raw_rows):
 
 
 def test_silver_drops_only_name_spelling_duplicates(con):
-    assert scalar(con, "select duplicate_rows_removed from gold.gold_data_quality limit 1") == 501
+    assert scalar(con, "select duplicate_rows_removed from gold.gold_data_quality limit 1") == 505
 
 
 def test_total_services_is_adv_not_a_sum_of_categories(con):
@@ -78,3 +78,15 @@ def test_shrinkage_pulls_small_practices_harder(con):
         """
     ).fetchone()
     assert small > large
+
+
+def test_headline_numbers_match_independent_stdlib_computation(con):
+    """Reference values computed from the raw CSV with the Python standard library (see docs/data-audit.md)."""
+    services, spp, preventive, lo, hi = con.execute(
+        "select services_observed, services_per_patient, preventive_coverage, "
+        "provider_patients_lower_bound, provider_patients_upper_bound from gold.gold_program_kpis"
+    ).fetchone()
+    assert services == 42_560_256
+    assert spp == pytest.approx(6.34, abs=0.005)
+    assert preventive == pytest.approx(0.672, abs=0.0005)
+    assert (lo, hi) == (6_718_962, 6_770_721)
