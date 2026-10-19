@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: bronze_denti_cal_utilization
+    description: >
+      Denti-Cal "Dental Care Utilization by Rendering Provider" extract (CHHS Open Data
+      Portal) loaded verbatim: every value is text, nothing is filtered or derived.
+      ADV = annual dental visit (any dental service); PREV = preventive; TXMT = treatment;
+      EXAM = examination. USER_CNT = unique patients, SVC_CNT = services. Annotation
+      codes mark suppressed counts.
+    columns:
+      - name: rendering_npi
+        description: National Provider Identifier of the rendering dentist.
+        data_tests: [not_null]
+      - name: _source_row
+        description: 1-based row number in the source file, for lineage.
+        data_tests: [unique, not_null]

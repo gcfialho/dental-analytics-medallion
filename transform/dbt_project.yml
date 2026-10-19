@@ -1,0 +1,25 @@
+name: dental_analytics
+version: "2.0.0"
+profile: dental_analytics
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  raw_csv_path: "data/raw/denti_cal_2018.csv"
+  # Small-cell suppression: the source withholds counts between 1 and 10.
+  suppression_min: 1
+  suppression_max: 10
+
+models:
+  dental_analytics:
+    +materialized: table
+    bronze:
+      +schema: bronze
+    silver:
+      +schema: silver
+    gold:
+      +schema: gold

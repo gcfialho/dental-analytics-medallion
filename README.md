@@ -1,302 +1,185 @@
-# Dental Analytics Solution
+# Dental Analytics Medallion
 
-A comprehensive analytics application that transforms dental care utilization data into actionable insights through an interactive dashboard with data visualizations, SQL documentation, and AI-generated reports.
+A medallion data pipeline (bronze → silver → gold) over California's public Medi-Cal
+dental data, built with dbt + DuckDB, with a Streamlit dashboard and an LLM brief whose
+every number is fact-checked against the warehouse.
 
-## Architecture
+[![CI](https://github.com/gcfialho/dental-analytics-medallion/actions/workflows/ci.yml/badge.svg)](https://github.com/gcfialho/dental-analytics-medallion/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![dbt](https://img.shields.io/badge/dbt-duckdb-orange)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-```
-+-------------+     +------------------+     +-------------------+     +-------------------+
-|             |     |                  |     |                   |     |                   |
-|   MySQL     +---->+  Python ETL      +---->+  Streamlit App    +---->+  User Interface   |
-|  Database   |     |  (SQL Scripts)   |     |                   |     |                   |
-|             |     |                  |     |                   |     |                   |
-+-------------+     +------------------+     +-------------------+     +-------------------+
-                            |                         |
-                            v                         v
-                    +----------------+        +---------------------+
-                    |                |        |                     |
-                    | Data Layers:   |        | Views:              |
-                    | 0. Tables      |        | - Project Overview  |
-                    | 1. Raw         |        | - Dashboard         |
-                    | 2. Trusted     |        | - SQL Documentation |
-                    | 3. Refined     |        |                     |
-                    |                |        |                     |
-                    +----------------+        +---------------------+
-```
+<!-- hero: docs/img/dashboard-overview.png (screenshot pending) -->
 
-The application follows a structured data flow:
+## Highlights
 
-1. **Data Storage**: MySQL database stores all dental utilization data
-2. **ETL Process**: Python executes SQL scripts in sequence:
-   - `01_create_database.sql`: Creates database structure and raw tables
-   - `02_raw_to_trusted.sql`: Transforms raw data to trusted layer with clean data
-   - `03_trusted_to_refined.sql`: Creates refined analytical layer from trusted data
-3. **Visualization**: Streamlit app provides interactive interface with two main views:
-   - Dashboard tab with metrics, charts, and AI-generated insights
-   - SQL Documentation tab with annotated SQL code and markdown documentation
+- **Data modelling with dbt.** Bronze/silver/gold layers on DuckDB, with documented
+  models and data tests that stop the build when an invariant breaks.
+- **Data auditing.** v2 found and fixed double-counted services, privacy-suppressed
+  values treated as zero, and duplicate rows. Each fix is pinned by a test.
+  [Read the audit →](docs/data-audit.md)
+- **Sound statistics.** Ratios of sums, bounds under suppression, empirical-Bayes
+  shrinkage for provider rankings and a robust outlier screen.
+- **LLM with guardrails.** OpenAI structured outputs over a curated fact sheet. A
+  validator rejects any finding whose numbers do not match the facts it cites.
+- **Runs anywhere.** One command, no database server, no cloud account. CI runs the full
+  build and tests on every push.
 
-## Project Overview
+## Quickstart
 
-The Dental Analytics Solution analyzes dental care utilization data from the Denti-Cal program. It implements a three-layer data architecture with SQL transformations to clean, standardize, and enrich raw data, followed by a feature-rich Streamlit dashboard for visualization and insights generation.
+Requires [uv](https://docs.astral.sh/uv/).
 
-### Data Source
+```bash
+git clone https://github.com/gcfialho/dental-analytics-medallion.git
+cd dental-analytics-medallion
+uv sync
 
-The data comes from the California Department of Health Care Services (DHCS) Denti-Cal program via their open data portal. This dataset provides detailed information about dental services provided by rendering providers for calendar year 2018.
-
-![Dental Analytics Dashboard](https://storage.googleapis.com/kaggle-datasets-images/3643269/6329740/9bde64ea42cac732ffe73c962a350760/dataset-cover.jpg?t=2023-08-19-16-02-42)
-
-
-**Dataset Information:**
-- **Original Source:** [Denti-Cal](https://www.denti-cal.ca.gov/)
-- **Dataset Portal:** [California Health and Human Services Open Data Portal](https://data.chhs.ca.gov/dataset/dental-care-utilization-by-rendering-provider)
-- **Kaggle Dataset:** [Dental Care Utilization](https://www.kaggle.com/datasets/mpwolke/cusersmarildownloadsdentalcsv)
-- **Data World Mirror:** [CHHS Dental Care Utilization](https://data.world/chhs/4cc0cf04-4f24-4624-9480-23266f8c3f7e)
-- **Last Updated:** 2020-06-01
-- **License:** [CHHS Terms of Use](https://data.chhs.ca.gov/pages/terms)
-
-**Data Description:**
-
-"This dataset provides beneficiary and service counts for annual dental visits, dental preventive services, dental treatment, and dental exams by rendering providers (by NPI) for calendar year (CY) 2018. It includes fee-for-service (FFS), Geographic Managed Care, and Pre-Paid Health Plans delivery systems. Rendering providers are categorized as either rendering or rendering at a safety net clinic. Beneficiaries are grouped by Age 0-20 and Age 21+."
-
-**Data Contents:**
-- Provider information (NPI, legal name)
-- Delivery systems (FFS, GMC, PHP)
-- Patient age groups (0-20, 21+) 
-- Service counts by type (preventive, treatment, examination)
-- Patient counts by service type
-
-## Project Structure
-
-```
-infogain-sd/
-├── app/
-│   ├── app.py                    # Main Streamlit dashboard
-│   ├── ai_reporting.py           # AI-powered insights generation
-│   ├── sql_documentation.py      # SQL documentation display module
-│   └── utils.py                  # Utility functions for data processing and visualization
-├── sql/
-│   ├── 01_create_database.sql    # Database initialization script
-│   ├── 02_raw_to_trusted.sql     # First transformation layer
-│   └── 03_trusted_to_refined.sql # Second transformation layer
-├── .env                          # Environment variables file
-├── etl.py                        # ETL script for data processing
-├── LATEST_REPORT.md              # Most recent AI-generated report
-├── raw_dental.csv                # Original source data
-├── README.md                     # Project documentation (this file)
-├── requirements.txt              # Dependencies for the project
-└── run.sh                        # Execution script
+uv run dental pipeline           # dbt build: bronze → silver → gold + data tests
+uv run dental brief --offline    # deterministic brief, no API key needed
+uv run dental dashboard          # http://localhost:8501
 ```
 
-## Data Processing Pipeline
+For the LLM brief, set `OPENAI_API_KEY` (see `.env.example`) and run `uv run dental brief`.
+The model defaults to `gpt-5-mini`; override it with `--model` or `OPENAI_MODEL`.
 
-This project implements a three-layer data architecture:
+Also available: `make docs` (dbt docs and lineage graph), `make test`, `make lint`, and
+`docker build -t dental . && docker run -p 8501:8501 dental`.
 
-### 1. Raw Layer
-- Original source data in its unmodified form
-- Contains potential data quality issues, inconsistencies, or missing values
-- Implemented in `sql/01_create_database.sql`
+## How it works
 
-### 2. Trusted Layer (ETL Process 1)
-- Data cleaning and standardization
-- Handling of null values and explicit data type conversion
-- Addition of basic derived metrics
-- Implementation: `sql/02_raw_to_trusted.sql`
-
-### 3. Refined Layer (ETL Process 2)
-- Advanced analytics-ready data
-- Aggregations and summary tables
-- Complex derived metrics and KPIs
-- Provider efficiency scoring
-- Implementation: `sql/03_trusted_to_refined.sql`
-
-## Dashboard Features
-
-The Streamlit dashboard (`app/app.py`) provides interactive visualization and analysis of the dental care utilization data through multiple tabs:
-
-### Project Overview Tab
-- Comprehensive documentation of the project
-- Architecture diagram showing data flow
-- Project structure and organization
-- Details on data processing pipeline
-- Instructions for setup and usage
-
-### Dashboard Tab
-- **Key Metrics Overview**: Total providers, patients, services, and average services per patient
-- **Service Distribution Analysis**: Breakdown of service types (preventive, treatment, examination)
-- **Age Group Comparison**: Patient volumes and service intensity by age group
-- **Delivery System Performance**: Comparison of different delivery systems (FFS, GMC, PHP)
-- **Provider Analysis**: Top providers by volume and efficiency
-- **Service Intensity Heatmap**: Visual representation of service patterns
-- **AI-Generated Insights**: Automated analysis report highlighting key findings with export functionality
-
-### SQL Documentation Tab
-- Interactive display of SQL scripts with accompanying documentation
-- Documentation viewer with metadata extraction
-- Side-by-side display of SQL code and markdown documentation
-- Structured format with script metadata, purpose, and transformation details
-
-## SQL Documentation Format
-
-All SQL scripts include structured markdown documentation using SQL comments:
-
-- Use standard SQL comments (`--`) for content that should appear in documentation
-- Use special comment format (`-- |`) for technical/code-specific comments that should remain in the code but not appear in documentation
-
-Example documentation structure:
-```sql
--- # SQL SCRIPT: [Script Title]
--- 
--- **Author:** [Author Name]
--- **Created:** [Creation Date]
--- **Last Modified:** [Last Modification Date]
--- 
--- ## Purpose
--- [Description of what this script does]
--- 
--- ## Transformations
--- [Details about data transformations]
--- 
--- ## Dependencies
--- [Required tables, views, or procedures]
---
--- Technical comment that won't show in docs
--- | This is a technical comment that won't appear in the markdown documentation
+```mermaid
+flowchart LR
+    csv[("Denti-Cal CSV<br/>24,300 rows")] --> bronze
+    subgraph dbt["dbt build on DuckDB"]
+        bronze["bronze<br/>verbatim text,<br/>row lineage"] --> silver["silver<br/>typed · suppressed → NULL<br/>dedup · canonical names"]
+        silver --> gold["gold<br/>KPIs with bounds · segments<br/>provider scorecard · data quality"]
+    end
+    gold --> dash["Streamlit dashboard"]
+    gold --> facts["Fact sheet<br/>ids + display values"]
+    facts --> llm["OpenAI<br/>structured output"]
+    llm --> check{"Fact-check"}
+    facts --> check
+    check -->|accepted| brief["Brief<br/>Markdown + JSON"]
+    check -->|rejected, with reason| brief
+    brief --> dash
 ```
 
-## How to Use This Project
+| Layer | Models | Responsibility |
+|---|---|---|
+| Bronze | `bronze_denti_cal_utilization` | Load the file exactly as published: text only, plus source file and row number. |
+| Silver | `silver_provider_utilization`, `silver_providers` | Types, suppressed counts as `NULL` with flags, exact-duplicate removal, labelled delivery systems and age groups, row-level rates, canonical provider names. |
+| Gold | `gold_program_kpis`, `gold_segment_summary`, `gold_provider_scorecard`, `gold_data_quality` | Program KPIs with suppression bounds, ratio-of-sums segments, empirical-Bayes scorecard, outlier screen, data-quality profile. |
 
-### Prerequisites
-- Python 3.8+
-- MySQL database
-- OpenAI API key (for AI-generated insights)
-- Required Python packages (see `requirements.txt`)
+`dbt build` runs models and data tests together, so bad data never reaches the
+dashboard or the LLM.
 
-### Setup and Execution
+## Results
 
-1. **Configure the OpenAI API key**:
-   ```bash
-   # Set your OpenAI API key as environment variable
-   export OPENAI_API_KEY="your-api-key"
-   ```
+Denti-Cal, calendar year 2018: 10,849 rendering providers, 24,300 source rows.
 
-2. **Database configuration**:
-   
-   The database configuration is managed through the `.env` file in the project root. The file already contains the default configuration:
-   ```
-   DATABASE_NAME=dental_analytics
-   DATABASE_USER=root
-   DATABASE_PASSWORD=root
-   DATABASE_HOST=localhost
-   DATABASE_PORT=3306
-   ```
-   
-   You can modify these values if needed for your specific database setup.
+| Metric | v1 (before audit) | v2 |
+|---|---|---|
+| Dental services | 71,211,862 | **42,560,256** |
+| Services per patient | 10.41 | **6.34** |
+| Provider-level patients | 6,842,769 | **6,713,211** published (6.72M–6.77M with suppressed rows) |
+| Rows with suppressed patient counts | treated as 0 | **24.2%**, excluded from rates |
+| Duplicate rows | kept | **505** removed |
 
-3. **Run the initialization script**:
-   ```bash
-   # Execute the setup script
-   ./run.sh
-   ```
+Share of patients who received each type of care:
 
-   This script will:
-   - Configure other necessary environment variables
-   - Activate the conda environment
-   - Initialize the database if needed
+| Age group | Preventive | Exam | Treatment | Services per patient |
+|---|---|---|---|---|
+| 0–20 | 79.2% | 73.4% | 38.6% | 7.23 |
+| 21+ | 47.5% | 61.8% | 60.7% | 4.89 |
 
-4. **Alternatively, set up manually**:
-   ```bash
-   # Create and activate conda environment
-   conda create --name infogain python=3.12
-   conda activate infogain
-   
-   # Install dependencies
-   pip install -r requirements.txt
-   
-   # Set OpenAI API key
-   export OPENAI_API_KEY="your-api-key"
-   ```
+Children are mostly seen for prevention, while adults are more often seen for
+treatment. By delivery system, preventive coverage is 67.6% in Fee-for-Service, 65.1% in
+Prepaid Health Plans and 56.4% in Geographic Managed Care.
 
-5. **Launch the Streamlit dashboard**:
-   ```bash
-   streamlit run app/app.py
-   ```
+These values were computed independently from the raw CSV and are pinned by
+`tests/test_warehouse.py`.
 
-6. **Explore the dashboard**:
-   - Use the tab selector to navigate between Dashboard and SQL Documentation
-   - Apply filters to focus on specific segments of data
-   - Generate AI-powered insights for deeper understanding
-   - Explore SQL transformation logic through the documentation viewer
+## Methodology
 
-## Data Type Handling
+- **ADV is the total.** "Annual dental visit" counts any dental service. Preventive,
+  treatment and exam counts are subsets of it, which a dbt test checks on every row.
+- **Suppressed means unknown, not zero.** The source withholds patient counts from 1 to
+  10; no published count falls in that range, while true zeros are published as 0. Rates use only rows where both sides are
+  published, and patient totals are reported as a range.
+- **Ratios of sums, not averages of ratios.** An 11-patient practice does not weigh as
+  much as a 70,000-patient clinic.
+- **Shrink before you rank.** 3 out of 3 patients is not "100% preventive". Provider
+  preventive coverage uses empirical-Bayes beta-binomial shrinkage per age group
+  (method-of-moments prior, with sampling variance removed from the between-provider
+  variance).
+- **Outliers are a screen, not a verdict.** Service intensity is flagged by modified
+  z-score (median/MAD > 3.5), which is robust to the heavy right tail.
+- **Patients are provider-level.** Counts are unique per provider, so a patient seen by
+  two providers counts twice. The dashboard and the brief say so.
 
-This application implements careful data type handling throughout:
+### The LLM brief and its guardrails
 
-- Numeric columns from the database are loaded as strings initially
-- All numeric operations require explicit conversion using `pd.to_numeric()`
-- Data type conversions are implemented before any mathematical operations
+The model never sees raw rows. It gets a fact sheet built from gold, where each fact has
+a stable id, a label and a display value. It must return a Pydantic `InsightsBrief`
+through OpenAI structured outputs and cite fact ids for every finding.
 
-## Analysis Focus Areas
+Before anything is shown, `guardrails.verify_brief`:
 
-This project enables several key analytical areas:
+1. rejects findings that cite no facts or unknown ids;
+2. extracts every number in the text (`66.1%`, `6,842,769`, `6.8 million`) and requires
+   it to be a correct rounding of one of the **cited** facts, at the precision written;
+3. checks the headline against the whole fact sheet.
 
-1. **Provider Performance Analysis**:
-   - Identify high-volume and high-efficiency providers
-   - Compare service intensity across providers
-   - Analyze preventive vs. treatment care patterns
+Rejected findings are listed with the reason instead of being silently dropped. The
+offline brief goes through the same checks, and CI fails if it does not pass them.
 
-2. **Age Group Utilization Patterns**:
-   - Compare service utilization between children/youth and adults
-   - Identify differences in preventive care coverage
-   - Analyze service types by age group
+## Project structure
 
-3. **Delivery System Effectiveness**:
-   - Compare efficiency across delivery systems (FFS, GMC, PHP)
-   - Evaluate coverage percentages and service ratios
-   - Identify system-specific performance patterns
+```
+├── data/raw/denti_cal_2018.csv     # source extract (public data)
+├── transform/                      # dbt project
+│   ├── models/{bronze,silver,gold}/
+│   ├── tests/                      # singular and generic data tests
+│   └── macros/
+├── src/dental_analytics/
+│   ├── cli.py                      # dental pipeline | brief | dashboard
+│   ├── pipeline.py                 # programmatic dbt build
+│   ├── insights/                   # facts, LLM, guardrails, offline brief, report
+│   └── dashboard/app.py            # Streamlit
+├── tests/                          # pytest: guardrails, LLM contract, warehouse invariants
+└── docs/data-audit.md              # what v1 got wrong and how v2 fixes it
+```
 
-4. **Service Type Distribution**:
-   - Analyze preventive service coverage
-   - Evaluate treatment intensity
-   - Identify examination rates and patterns
-   
-## Future Enhancements
+## Testing
 
-Potential enhancements to the project could include:
+```bash
+uv run pytest      # unit tests + a full dbt build into a temporary warehouse
+make lint          # ruff check + ruff format --check
+```
 
-### Scaled Data Architecture
-- **Expanded Data Sources**:
-  - Integration with much larger datasets (millions of records across multiple years)
-  - Ingestion of additional dental healthcare data sources with more detailed patient information
-  - Combining clinical data with financial and demographic information for comprehensive analysis
+On every push and pull request, CI runs lint, `dbt build` with all data tests, the
+offline brief fact-check and pytest.
 
-### Cloud-native Analytics Platform
-- **BigQuery Implementation**:
-  - Migration from MySQL to Google BigQuery for high-performance analysis of massive datasets
-  - Leveraging BigQuery's columnar storage for accelerated analytical queries
-  - Utilizing BigQuery ML for in-database machine learning capabilities
-  - Implementing partitioning and clustering strategies for optimal performance
+## Limitations & roadmap
 
-### Enterprise-grade Orchestration
-- **Pipeline Orchestration**:
-  - Implementation of Apache Airflow or Google Cloud Composer for workflow management
-  - Creation of directed acyclic graphs (DAGs) for complex ETL dependencies
-  - Scheduled executions with robust error handling and notifications
-  - Integration with data quality validation tools to ensure analytical integrity
+**Data.** [Dental Care Utilization by Rendering Provider](https://data.chhs.ca.gov/),
+California Department of Health Care Services (Denti-Cal), via the CHHS Open Data Portal.
+ADV = annual dental visit, PREV = preventive, TXMT = treatment, EXAM = examination;
+FFS = Fee-for-Service, GMC = Geographic Managed Care, PHP = Prepaid Health Plan;
+SNC = safety net clinic.
 
-### Advanced AI Integration
-- **Enhanced AI Insights**:
-  - Deep learning models for dental treatment outcome prediction
-  - Natural language processing to generate more contextually relevant insights
-  - Anomaly detection systems to identify unusual service utilization patterns
-  - Patient segmentation using clustering algorithms to identify targeted intervention opportunities
+**Limitations.** One year only. Utilization is not clinical quality. Suppression hides
+small practices disproportionately. Provider-level patient counts are not distinct
+beneficiaries. This project began as an analytics take-home exercise and was rebuilt as
+v2 after an audit.
 
-### Additional Analytical Capabilities
-- **Multi-dimensional Analysis**:
-  - Time-series analysis for multi-year trend detection and seasonality patterns
-  - Geographic mapping with regional performance metrics and access analysis
-  - Provider performance prediction models with confidence intervals
-  - Interactive documentation with automated SQL diagram generation
+**Roadmap**
+- Multi-year extract, to add trends and incremental models.
+- BigQuery target (`dbt-bigquery`) and an Airflow/Cloud Composer DAG for scheduled runs.
+- An eval set for the brief, scoring factual precision and coverage across models and
+  prompts.
 
----
+## Author
 
-*This mini-project was developed as a practical exercise to apply SQL, ETL, and Python knowledge, demonstrating how to transform raw data into insights through a simple analytics pipeline.*
+**Guilherme Fialho** · Machine Learning Engineer (GenAI/LLMs) and Data Engineer ·
+[LinkedIn](https://www.linkedin.com/in/guilherme-cagide-fialho/) · [GitHub](https://github.com/gcfialho)

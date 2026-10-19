@@ -1,0 +1,46 @@
+[project]
+name = "dental-analytics-medallion"
+version = "2.0.0"
+description = "Medallion (bronze/silver/gold) analytics on public Denti-Cal data with dbt + DuckDB, a Streamlit dashboard and fact-checked LLM briefs."
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Guilherme Fialho" }]
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "dbt-core>=1.12.6",
+    "dbt-duckdb>=1.11.0",
+    "duckdb>=1.5.6",
+    "openai>=3.35.1",
+    "pandas>=3.0.6",
+    "plotly>=7.1.0",
+    "pydantic>=2.14.1",
+    "streamlit>=1.66.0",
+]
+
+[project.scripts]
+dental = "dental_analytics.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dental_analytics"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]  # line length is handled by `ruff format`
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

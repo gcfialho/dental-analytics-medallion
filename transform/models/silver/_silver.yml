@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: silver_provider_utilization
+    description: >
+      Typed and cleaned utilization, one row per provider x delivery system x provider
+      type x age group x name spelling. Suppressed counts are NULL with a
+      `*_suppressed` flag. Rows that only repeat another row's metrics under a different
+      name spelling are removed.
+    columns:
+      - name: utilization_key
+        data_tests: [unique, not_null]
+      - name: rendering_npi
+        data_tests: [not_null]
+      - name: delivery_system
+        description: FFS (Fee-for-Service), GMC (Geographic Managed Care) or PHP (Prepaid Health Plan).
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["FFS", "GMC", "PHP"]
+      - name: age_group
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["0-20", "21+"]
+      - name: provider_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["RENDERING", "RENDERING SNC"]
+      - name: adv_users
+        description: Unique patients with any dental service. NULL when suppressed.
+      - name: adv_services
+        description: All dental services. This is the total; category counts are subsets of it.
+      - name: services_per_patient
+        description: adv_services / adv_users.
+      - name: preventive_coverage
+        description: Share of the provider's patients who received a preventive service.
+      - name: has_name_variants
+        description: The same provider and segment appears under more than one name spelling with different metrics.
+
+  - name: silver_providers
+    description: One row per NPI with a canonical display name.
+    columns:
+      - name: rendering_npi
+        data_tests: [unique, not_null]
+      - name: provider_name
+        data_tests: [not_null]

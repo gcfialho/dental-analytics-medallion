@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: gold_program_kpis
+    description: Program-wide headline metrics (exactly one row), with bounds for suppressed patient counts.
+    data_tests:
+      - exactly_one_row
+    columns:
+      - name: preventive_coverage
+        data_tests: [not_null]
+
+  - name: gold_segment_summary
+    description: Delivery system x age group utilization, plus per-dimension and overall totals labelled ALL.
+    columns:
+      - name: services_per_patient
+        data_tests: [not_null]
+
+  - name: gold_provider_scorecard
+    description: >
+      Provider x age group scorecard with empirical-Bayes shrunk preventive coverage and
+      a robust (median/MAD) outlier flag for services per patient.
+    columns:
+      - name: scorecard_key
+        data_tests: [unique, not_null]
+      - name: shrunk_preventive_coverage
+        data_tests: [not_null]
+
+  - name: gold_data_quality
+    description: Suppression profile per measure and row accounting from bronze to silver.
