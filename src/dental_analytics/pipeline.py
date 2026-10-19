@@ -20,8 +20,10 @@ def run_dbt(settings: Settings, command: str = "build", extra_args: list[str] | 
 
     args = [
         command,
-        "--project-dir", str(settings.dbt_project_dir),
-        "--profiles-dir", str(settings.dbt_project_dir),
+        "--project-dir",
+        str(settings.dbt_project_dir),
+        "--profiles-dir",
+        str(settings.dbt_project_dir),
         *(extra_args or []),
     ]
     log.info("Running dbt %s", " ".join(args))

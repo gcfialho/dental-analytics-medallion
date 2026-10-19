@@ -145,8 +145,14 @@ with providers_tab:
     st.subheader("Highest preventive coverage (shrunk)")
     st.dataframe(
         group.nsmallest(15, "preventive_rank")[
-            ["preventive_rank", "provider_name", "rendering_npi", "coverage_patients",
-             "raw_preventive_coverage", "shrunk_preventive_coverage"]
+            [
+                "preventive_rank",
+                "provider_name",
+                "rendering_npi",
+                "coverage_patients",
+                "raw_preventive_coverage",
+                "shrunk_preventive_coverage",
+            ]
         ],
         hide_index=True,
         column_config={
@@ -155,11 +161,18 @@ with providers_tab:
         },
     )
     st.subheader(f"Service-intensity outliers ({int(group.is_intensity_outlier.sum())} flagged)")
-    st.caption("Modified z-score of services per patient above 3.5 (median/MAD). A screen for review, not a finding of wrongdoing.")
+    st.caption(
+        "Modified z-score of services per patient above 3.5 (median/MAD). A screen for review, not a finding of wrongdoing."
+    )
     st.dataframe(
-        group[group.is_intensity_outlier]
-        .sort_values("services_per_patient_robust_z", ascending=False)[
-            ["provider_name", "rendering_npi", "patients_observed", "services_per_patient", "services_per_patient_robust_z"]
+        group[group.is_intensity_outlier].sort_values("services_per_patient_robust_z", ascending=False)[
+            [
+                "provider_name",
+                "rendering_npi",
+                "patients_observed",
+                "services_per_patient",
+                "services_per_patient_robust_z",
+            ]
         ],
         hide_index=True,
     )
@@ -168,7 +181,11 @@ with quality_tab:
     q = quality.iloc[0]
     c1, c2, c3 = st.columns(3)
     c1.metric("Source rows", f"{q.bronze_rows:,}")
-    c2.metric("Duplicate rows removed", f"{q.duplicate_rows_removed:,}", help="Same provider, segment and metrics; only the name spelling differed.")
+    c2.metric(
+        "Duplicate rows removed",
+        f"{q.duplicate_rows_removed:,}",
+        help="Same provider, segment and metrics; only the name spelling differed.",
+    )
     c3.metric("Rows with suppressed patient count", pct(kpis.suppressed_row_share))
     fig = px.bar(
         quality,

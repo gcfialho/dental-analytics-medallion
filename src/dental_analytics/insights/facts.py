@@ -114,7 +114,13 @@ def build_facts(con: duckdb.DuckDBPyConnection) -> list[Fact]:
             row.provider_patients_observed,
             "count",
         )
-        _add(facts, f"segment.{scope}.services_per_patient", f"Services per patient ({who})", row.services_per_patient, "rate")
+        _add(
+            facts,
+            f"segment.{scope}.services_per_patient",
+            f"Services per patient ({who})",
+            row.services_per_patient,
+            "rate",
+        )
         for kind in ("preventive", "treatment", "exam"):
             _add(
                 facts,

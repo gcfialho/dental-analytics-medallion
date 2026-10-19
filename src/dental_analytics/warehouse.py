@@ -21,9 +21,7 @@ class WarehouseNotBuiltError(FileNotFoundError):
 
 def connect(path: Path) -> duckdb.DuckDBPyConnection:
     if not path.exists():
-        raise WarehouseNotBuiltError(
-            f"No warehouse at {path}. Build it with `uv run dental pipeline`."
-        )
+        raise WarehouseNotBuiltError(f"No warehouse at {path}. Build it with `uv run dental pipeline`.")
     return duckdb.connect(str(path), read_only=True)
 
 

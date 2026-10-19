@@ -11,10 +11,7 @@ class Finding(BaseModel):
     kind: Literal["observation", "recommendation"]
     title: str = Field(description="Short headline, at most 12 words.")
     statement: str = Field(
-        description=(
-            "One or two sentences. Every number must be copied from the `display` "
-            "value of a cited fact."
-        )
+        description=("One or two sentences. Every number must be copied from the `display` value of a cited fact.")
     )
     metric_ids: list[str] = Field(description="Ids of every fact the statement relies on.")
 

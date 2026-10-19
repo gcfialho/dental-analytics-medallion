@@ -45,7 +45,11 @@ def test_percent_never_matches_a_count_or_rate():
 def test_accepts_finding_backed_by_cited_facts():
     brief = InsightsBrief(
         headline="In 2018, 6.37 services were delivered per patient.",
-        findings=[finding("66.1% of children vs 28.4% of adults got preventive care.", ["kids.preventive", "adults.preventive"])],
+        findings=[
+            finding(
+                "66.1% of children vs 28.4% of adults got preventive care.", ["kids.preventive", "adults.preventive"]
+            )
+        ],
         caveats=[],
     )
     verified = verify_brief(brief, FACTS)

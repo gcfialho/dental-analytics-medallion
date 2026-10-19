@@ -23,7 +23,9 @@ class BriefMetadata:
 
 def render_markdown(verified: VerifiedBrief, meta: BriefMetadata) -> str:
     lines = ["# Denti-Cal utilization brief", ""]
-    lines.append(f"_Generated {meta.generated_at} by `{meta.backend}`. Every number below was checked against the gold layer._")
+    lines.append(
+        f"_Generated {meta.generated_at} by `{meta.backend}`. Every number below was checked against the gold layer._"
+    )
     lines.append("")
     if verified.headline:
         lines += [f"**{verified.headline}**", ""]
@@ -50,9 +52,7 @@ def render_markdown(verified: VerifiedBrief, meta: BriefMetadata) -> str:
     return "\n".join(lines)
 
 
-def save_brief(
-    reports_dir: Path, raw: InsightsBrief, verified: VerifiedBrief, meta: BriefMetadata
-) -> Path:
+def save_brief(reports_dir: Path, raw: InsightsBrief, verified: VerifiedBrief, meta: BriefMetadata) -> Path:
     reports_dir.mkdir(parents=True, exist_ok=True)
     payload = {
         "metadata": asdict(meta),
