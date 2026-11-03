@@ -18,6 +18,8 @@ jobs:
         run: |
           uv run ruff check .
           uv run ruff format --check .
+      - name: Type check
+        run: uv run mypy
       - name: dbt build (models + data tests)
         run: uv run dental pipeline
       - name: Offline brief passes the fact-check

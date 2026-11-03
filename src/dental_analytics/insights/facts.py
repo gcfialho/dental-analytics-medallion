@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, SupportsFloat
 
 import duckdb
 
@@ -40,6 +40,8 @@ class Fact:
 def _add(facts: list[Fact], fact_id: str, label: str, value: object, unit: Unit) -> None:
     if value is None:
         return
+    if not isinstance(value, SupportsFloat):
+        raise TypeError(f"{fact_id}: expected a number, got {value!r}")
     number = float(value)
     if math.isnan(number):
         return
@@ -99,12 +101,13 @@ def build_facts(con: duckdb.DuckDBPyConnection) -> list[Fact]:
 
     segments = read_gold(con, "gold_segment_summary")
     for row in segments.itertuples(index=False):
-        if row.delivery_system == "ALL" and row.age_group == "ALL":
+        system, ages = str(row.delivery_system), str(row.age_group)
+        if system == "ALL" and ages == "ALL":
             continue
-        scope = f"{_slug(row.delivery_system)}.{_slug(row.age_group)}"
+        scope = f"{_slug(system)}.{_slug(ages)}"
         who = (
-            f"{row.delivery_system_name if row.delivery_system != 'ALL' else 'all delivery systems'}, "
-            f"{'all ages' if row.age_group == 'ALL' else 'ages ' + row.age_group}"
+            f"{str(row.delivery_system_name) if system != 'ALL' else 'all delivery systems'}, "
+            f"{'all ages' if ages == 'ALL' else 'ages ' + ages}"
         )
         _add(facts, f"segment.{scope}.providers", f"Providers ({who})", row.providers, "count")
         _add(

@@ -1,8 +1,10 @@
 import os
 import subprocess
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 
+import duckdb
 import pytest
 
 from dental_analytics.config import Settings
@@ -31,6 +33,6 @@ def built_warehouse(settings: Settings) -> Path:
 
 
 @pytest.fixture
-def con(built_warehouse: Path):
+def con(built_warehouse: Path) -> Iterator[duckdb.DuckDBPyConnection]:
     with connect(built_warehouse) as connection:
         yield connection
