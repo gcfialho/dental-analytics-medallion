@@ -9,7 +9,15 @@ every number is fact-checked against the warehouse.
 ![dbt](https://img.shields.io/badge/dbt-duckdb-orange)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-<!-- hero: docs/img/dashboard-overview.png (screenshot pending) -->
+![Dashboard overview: 10,849 providers, 6.34 services per patient, and preventive, exam and treatment coverage by age group](docs/img/dashboard-overview.png)
+
+<details>
+<summary>The AI brief tab: every figure is checked against the gold layer before it is shown</summary>
+
+![AI brief tab with findings, recommendations and caveats](docs/img/dashboard-ai-brief.png)
+
+*Shown here with the deterministic `--offline` brief, so the screenshot needs no API key; `uv run dental brief` produces the same layout from the LLM.*
+</details>
 
 ## Highlights
 
