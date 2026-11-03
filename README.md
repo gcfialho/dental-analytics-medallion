@@ -154,11 +154,13 @@ offline brief goes through the same checks, and CI fails if it does not pass the
 
 ```bash
 uv run pytest      # unit tests + a full dbt build into a temporary warehouse
-make lint          # ruff check + ruff format --check
+make lint          # ruff check + ruff format --check + mypy
 ```
 
-On every push and pull request, CI runs lint, `dbt build` with all data tests, the
-offline brief fact-check and pytest.
+The Python code (package and tests) is type-checked with `mypy --strict`.
+
+On every push and pull request, CI runs lint and type checks, `dbt build` with all data
+tests, the offline brief fact-check and pytest.
 
 ## Limitations & roadmap
 

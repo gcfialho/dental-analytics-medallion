@@ -22,6 +22,7 @@ test:       ## Python tests (includes a full dbt build in a temp warehouse)
 lint:
 	uv run ruff check .
 	uv run ruff format --check .
+	uv run mypy
 
 format:
 	uv run ruff check --fix .
