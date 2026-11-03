@@ -18,3 +18,7 @@ logs/
 
 # OS
 .DS_Store
+
+# generated locally
+reports/latest_brief.*
+transform/.user.yml

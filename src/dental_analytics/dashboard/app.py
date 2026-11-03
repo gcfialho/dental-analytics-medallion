@@ -49,7 +49,7 @@ overview, segments_tab, providers_tab, quality_tab, brief_tab = st.tabs(
 
 with overview:
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Providers", f"{kpis.providers:,}")
+    c1.metric("Providers", f"{int(kpis.providers):,}")
     c2.metric(
         "Provider-level patients",
         f"{kpis.provider_patients_observed / 1e6:.2f}M",
@@ -81,7 +81,7 @@ with overview:
         title="Who receives which kind of care",
     )
     fig.update_yaxes(tickformat=".0%")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 with segments_tab:
     detail = segments[(segments.delivery_system != "ALL") & (segments.age_group != "ALL")]
@@ -98,7 +98,7 @@ with segments_tab:
             title="Preventive coverage by delivery system",
         )
         fig.update_yaxes(tickformat=".0%")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     with right:
         fig = px.bar(
             detail,
@@ -110,7 +110,7 @@ with segments_tab:
             labels={"services_per_patient": "Services per patient", "delivery_system_name": ""},
             title="Service intensity by delivery system",
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     st.dataframe(
         segments.drop(columns=["delivery_system"]),
         hide_index=True,
@@ -140,7 +140,7 @@ with providers_tab:
         title="Raw vs shrunk preventive coverage",
     )
     fig.update_yaxes(tickformat=".0%")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.subheader("Highest preventive coverage (shrunk)")
     st.dataframe(
@@ -199,7 +199,7 @@ with quality_tab:
         title="Suppressed values by measure",
     )
     fig.update_xaxes(tickformat=".0%")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     st.markdown(
         "Counts between 1 and 10 are withheld at the source to protect privacy (annotation code 1), and "
         "some larger counts are withheld so the small ones cannot be derived (code 2). Silver keeps them "
